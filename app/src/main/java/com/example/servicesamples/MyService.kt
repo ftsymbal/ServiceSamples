@@ -2,32 +2,50 @@ package com.example.servicesamples
 
 import android.app.Service
 import android.content.Intent
+import android.os.Binder
+import android.os.Handler
 import android.os.IBinder
-import android.util.Log
+import android.os.Looper
 
 class MyService : Service() {
 
-    override fun onCreate() {
-        Log.d(TAG, "Service created")
+    private val binder = LocalBinder()
+    private var counter = 11
+    private val handler = Handler(Looper.getMainLooper())
+    private var isRunning = false
+
+    inner class LocalBinder : Binder() {
+        fun getService(): MyService = this@MyService
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "Service started")
-        // Simulate work that takes 10 seconds
-        Thread.sleep(10000)
-        stopSelf() // Stop the service after the work is done
-        return START_NOT_STICKY
+    override fun onBind(intent: Intent): IBinder {
+        if (!isRunning) {
+            startCountdown()
+            isRunning = true
+        }
+        return binder
     }
 
-    override fun onDestroy() {
-        Log.d(TAG, "Service destroyed")
+    fun getCurrentProgress(): Int {
+        return counter
     }
 
-    override fun onBind(intent: Intent): IBinder? {
-        return null
+    fun restartCountdown(): Int {
+        counter = 10
+        return counter
     }
 
-    companion object {
-        private const val TAG = "MyService"
+    private fun startCountdown() {
+        handler.post(object : Runnable {
+            override fun run() {
+                if (counter > 0) {
+                    handler.postDelayed(this, 1000)
+                    counter--
+                }
+                else {
+                    isRunning = false
+                }
+            }
+        })
     }
 }
