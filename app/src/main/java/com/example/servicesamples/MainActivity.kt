@@ -25,6 +25,10 @@ class MainActivity : AppCompatActivity() {
             val binder = service as MyService.LocalBinder
             myService = binder.getService()
             isServiceBound = true
+            if (myService!!.isRunning) {
+                startServiceButton.text = getString(R.string.restart_service)
+                startPolling()
+            }
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -39,43 +43,37 @@ class MainActivity : AppCompatActivity() {
         countdownTextView = findViewById(R.id.countdownTextView)
         startServiceButton = findViewById(R.id.startServiceButton)
 
+        startService()
+
         startServiceButton.setOnClickListener {
-            if (isServiceBound) {
-                val counter = myService?.restartCountdown()
-                countdownTextView.text = counter.toString()
+            if (myService?.isRunning == true) {
+                countdownTextView.text = myService?.restartCountdown().toString()
             }
             else {
                 startServiceButton.text = getString(R.string.restart_service)
+                countdownTextView.text = myService?.startCountdown().toString()
                 startPolling()
             }
         }
     }
 
-    private fun bindService() {
+    private fun startService() {
         val serviceIntent = Intent(this, MyService::class.java)
+        this.startService(serviceIntent)
         bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE)
     }
 
     private fun startPolling() {
-        if (!isServiceBound) {
-            bindService()
-        }
         handler.post(object : Runnable {
             override fun run() {
-                if (isServiceBound) {
-                    val counter = myService?.getCurrentProgress()
-                    if (counter!! > 0) {
-                        countdownTextView.text = counter.toString()
-                        handler.postDelayed(this, 1000)
-                    }
-                    else {
-                        unbindService()
-                        startServiceButton.text = getString(R.string.start_service)
-                        countdownTextView.text = ""
-                    }
+                val counter = myService?.getCurrentProgress()
+                if (counter!! > 0) {
+                    countdownTextView.text = counter.toString()
+                    handler.postDelayed(this, 1000)
                 }
                 else {
-                    handler.postDelayed(this, 10)
+                    startServiceButton.text = getString(R.string.start_service)
+                    countdownTextView.text = ""
                 }
             }
         })
