@@ -13,8 +13,8 @@ class MyService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "Service started")
-        // Simulate work that takes 10 seconds
-        Thread.sleep(10000)
+        // Simulate work that takes 3 seconds
+        Thread.sleep(3000)
         stopSelf() // Stop the service after the work is done
         return START_NOT_STICKY
     }
