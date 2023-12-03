@@ -56,6 +56,13 @@ class MainActivity : AppCompatActivity() {
         bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE)
     }
 
+    private fun unbindService() {
+        if (isServiceBound) {
+            unbindService(connection)
+            isServiceBound = false
+        }
+    }
+
     private fun startPolling() {
         if (!isServiceBound) {
             bindService()
@@ -84,12 +91,5 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         unbindService()
-    }
-
-    private fun unbindService() {
-        if (isServiceBound) {
-            unbindService(connection)
-            isServiceBound = false
-        }
     }
 }
